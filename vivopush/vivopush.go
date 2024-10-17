@@ -93,3 +93,38 @@ func (c *Client) SendWithContext(ctx context.Context, req *SendReq) (*SendRes, e
 
 	return res, nil
 }
+
+func (c *Client) SendBatch(req *SendBatchReq) (*SendRes, error) {
+	return c.SendBatchWithContext(context.Background(), req)
+}
+
+func (c *Client) SendBatchWithContext(ctx context.Context, req *SendBatchReq) (*SendRes, error) {
+	res := &SendRes{}
+	token, err := c.auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 保存群推消息公共体接口(目的是为了取 task id)
+	code, resBody, err := httputil.PostJSON(ctx, c.httpClient, c.host+SaveMessageURL, req.Notification, res, map[string]string{"authToken": token})
+	if err != nil {
+		return nil, fmt.Errorf("code=%d body=%s err=%v", code, resBody, err)
+	}
+
+	if code != http.StatusOK || res.Result != 0 {
+		return nil, fmt.Errorf("code=%d body=%s", code, resBody)
+	}
+
+	// 批量推送用户接口
+	req.MsgConfig.TaskId = res.TaskId
+	code, resBody, err = httputil.PostJSON(ctx, c.httpClient, c.host+SendBatchURL, req.MsgConfig, res, map[string]string{"authToken": token})
+	if err != nil {
+		return nil, fmt.Errorf("code=%d body=%s err=%v", code, resBody, err)
+	}
+
+	if code != http.StatusOK || res.Result != 0 {
+		return nil, fmt.Errorf("code=%d body=%s", code, resBody)
+	}
+
+	return res, nil
+}

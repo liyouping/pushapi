@@ -3,8 +3,10 @@ package oppopush
 const (
 	Host = "https://api.push.oppomobile.com"
 
-	AuthURL = "/server/v1/auth"                         // 鉴权
-	SendURL = "/server/v1/message/notification/unicast" // 单推-通知栏消息推送
+	AuthURL        = "/server/v1/auth"                                      // 鉴权
+	SendURL        = "/server/v1/message/notification/unicast"              // 单推-通知栏消息推送
+	SaveMessageURL = "/server/v1/message/notification/save_message_content" // 广播推送前获取message_id
+	SendBatchURL   = "/server/v1/message/notification/broadcast"            // 广播推送
 )
 
 // SendReq 单推-通知栏消息推送
@@ -14,6 +16,20 @@ type SendReq struct {
 	TargetValue          string        `json:"target_value,omitempty"` // 推送目标用户: registration_id或alias
 	Notification         *Notification `json:"notification,omitempty"` // 请参见通知栏消息
 	VerifyRegistrationId bool          `json:"verify_registration_id"` // 消息到达客户端后是否校验registration_id。 true表示推送目标与客户端registration_id进行比较，如果一致则继续展示，不一致则就丢弃；false表示不校验
+}
+
+// SendBatchReq 广播-通知栏消息推送
+// https://open.oppomobile.com/new/developmentDoc/info?id=11237
+type SendBatchReq struct {
+	MsgConfig    *MsgConfig    `json:"msg_config"`
+	Notification *Notification `json:"notification,omitempty"` // 请参见通知栏消息
+}
+
+type MsgConfig struct {
+	MessageId            string `json:"message_id"`             // 消息ID。消息ID是调用保存消息体接口成功后响应的唯一标识。广播通知栏消息ID的格式为AppID-1-3-ObjectID，如ZngnvJIM7wQusNtbqYnpH6XX-1-3-622ea78f923805b1389e61c2，其中ZngnvJIM7wQusNtbqYnpH6XX是某个业务的AppID，622ea78f923805b1389e61c2是这条消息在Push的唯一ID。
+	TargetType           int    `json:"target_type"`            // 目标类型。接受一个short类型数字，目前推送目标可指定以下几种：2:表示推送目标为注册ID类型，5:表示推送目标为别名类型，6:表示推送目标按照标签对应的用户群圈定；
+	TargetValue          string `json:"target_value,omitempty"` // 具体的推送目标用户信息，根据推送目标类型有不同的传入方式：1.注册ID类型或别名类型的推送。这两种类型一次调用可传入最多1000个目标，目标之间以英文字符 ; 为分隔符。如传入注册ID目标列表，字符串可表示为 “RegID1;RegID2;RegID3”， 或者别名名单 “Alias1;Alias2;Alias3” 。标签：2.标签推送。标签推送的目标值使用标签表达式。标签表达式由一个或多个指令组合而成，一个指令包括组合字段和标签名单，表示若干个标签的组合搭配。假设有一个标签表达式，标签表达式的配置和计算规则如下：{ “or” : [ “tagID1”, " tagID2" ], “and” : [ “tagID3”, “tagID4”], “not” : [ “tagID5”, “tagID6”] }表达式逻辑计算如下：计算 “or” 字段的结果，得到tagID1和tagID2的并集A;计算 “and” 字段的结果 tagID3和tagID4的交集B;计算 “not” 字段的结果 (tagID5和tagID6的并集C’)的非集=C最后计算所有A和B和C的交集。最终结果为 (tagID1 ∪ tagID2)∩(tagID3 ∩ tagID4)∩(¬(tagID5 ∩ tagID6))
+	VerifyRegistrationId bool   `json:"verify_registration_id"` // 消息到达客户端后是否校验registration_id。 true表示推送目标与客户端registration_id进行比较，如果一致则继续展示，不一致则就丢弃；false表示不校验
 }
 
 // 问：OPPO Push 推送消息是否可以提供声音、震动等提醒选项设置？
@@ -74,4 +90,13 @@ type AuthRes struct {
 		AuthToken  string `json:"auth_token"`  // 权限令牌，推送消息时，需要提供auth_token，有效期默认为24小时，过期后无法使用
 		CreateTime int64  `json:"create_time"` // 时间毫秒数
 	} `json:"data"` // 返回值，JSON类型，包含响应结构体
+}
+
+type SendBatchRes struct {
+	Code    int    `json:"code"`    // 返回码,请参考公共返回码与接口返回码
+	Message string `json:"message"` // 错误详细信息，不存在则不填
+	Data    struct {
+		MessageID string `json:"message_id"` // 消息 ID
+		TaskID    string `json:"task_id"`    // 任务 ID
+	} `json:"data"` // 返回值，JSON类型
 }

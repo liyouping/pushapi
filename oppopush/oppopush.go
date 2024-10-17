@@ -104,3 +104,52 @@ func (c *Client) SendWithContext(ctx context.Context, req *SendReq) (*SendRes, e
 
 	return res, nil
 }
+
+// SendBatch 批量推送
+func (c *Client) SendBatch(req *SendBatchReq) (*SendBatchRes, error) {
+	return c.SendBatchWithContext(context.Background(), req)
+}
+
+func (c *Client) SendBatchWithContext(ctx context.Context, req *SendBatchReq) (*SendBatchRes, error) {
+	res := &SendBatchRes{}
+
+	token, err := c.auth(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	msgParams := httputil.StructToUrlValues(req.Notification)
+	msgParams.Add("auth_token", token)
+
+	// 获取 message id
+	code, resBody, err := httputil.PostForm(ctx, c.httpClient, c.host+SaveMessageURL, msgParams, res, nil)
+	if err != nil {
+		return nil, fmt.Errorf("code=%d body=%s err=%v", code, resBody, err)
+	}
+
+	if code != http.StatusOK || res.Code != 0 {
+		return nil, fmt.Errorf("code=%d body=%s", code, resBody)
+	}
+
+	messageId := res.Data.MessageID
+	msgConfig := &MsgConfig{
+		MessageId:            messageId,
+		TargetType:           req.MsgConfig.TargetType,
+		TargetValue:          req.MsgConfig.TargetValue,
+		VerifyRegistrationId: req.MsgConfig.VerifyRegistrationId,
+	}
+
+	// 群推消息
+	params := httputil.StructToUrlValues(msgConfig)
+	params.Add("auth_token", token)
+	code, resBody, err = httputil.PostForm(ctx, c.httpClient, c.host+SendBatchURL, params, res, nil)
+	if err != nil {
+		return nil, fmt.Errorf("code=%d body=%s err=%v", code, resBody, err)
+	}
+
+	if code != http.StatusOK || res.Code != 0 {
+		return nil, fmt.Errorf("code=%d body=%s", code, resBody)
+	}
+
+	return res, nil
+}

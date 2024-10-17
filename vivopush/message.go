@@ -5,8 +5,10 @@ package vivopush
 const (
 	Host = "https://api-push.vivo.com.cn"
 
-	AuthURL = "/message/auth" // 推送鉴权接口
-	SendURL = "/message/send" // 单推接口
+	AuthURL        = "/message/auth"            // 推送鉴权接口
+	SendURL        = "/message/send"            // 单推接口
+	SaveMessageURL = "/message/saveListPayload" // 保存群推消息公共体接口
+	SendBatchURL   = "/message/pushToList"      // 批量推送用户接口
 )
 
 type AuthReq struct {
@@ -44,6 +46,18 @@ type SendReq struct {
 	ProfileId       string                   `json:"profileId,omitempty"`       // 关联终端设备登录用户标识，最大长度为64，仅单推支持
 	SendOnline      bool                     `json:"sendOnline"`                // 是否在线直推，设置为true表示是在线直推，false表示非直推。在线直推功能推送时在设备在线下发一次，设备离线直接丢弃。详情请参见：在线直推 https://dev.vivo.com.cn/documentCenter/doc/743
 	ForegroundShow  bool                     `json:"foregroundShow"`            // 是否前台通知展示，设置为false表示应用在前台则不展示通知消息，true表示无论应用是否在前台都展示通知。
+}
+
+type SendBatchReq struct {
+	MsgConfig    *MsgConfig `json:"msg_config"`
+	Notification *SendReq   `json:"notification"`
+}
+
+type MsgConfig struct {
+	AppId     int      `json:"appId"`
+	RegIds    []string `json:"regIds"`
+	TaskId    string   `json:"taskId"`
+	RequestId string   `json:"requestId"`
 }
 
 type SendRes struct {
