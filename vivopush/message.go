@@ -65,7 +65,7 @@ type SendRes struct {
 	Desc        string `json:"desc"`   // 文字描述接口调用情况
 	TaskId      string `json:"taskId"` // 任务编号
 	InvalidUser *struct {
-		UserId int `json:"userid"` // userid为接入方传的regId或者alias
-		Status int `json:"status"` // status有3种情况： 1.userid不存在(userid与appId绑定，该userid无法在当前应用中找到)； 2.卸载, 或主动触发解订阅, 或用户清除数据(用户清除数据会使客户端SDK触发解订阅) 4.非测试用户
+		UserId string `json:"userid"` // userid为接入方传的regId或者alias
+		Status int    `json:"status"` // status有3种情况： 1.userid不存在(userid与appId绑定，该userid无法在当前应用中找到)； 2.卸载, 或主动触发解订阅, 或用户清除数据(用户清除数据会使客户端SDK触发解订阅) 4.非测试用户
 	} `json:"invalidUser"` // 非法用户信息，包括status和userid
 }
