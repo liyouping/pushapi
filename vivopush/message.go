@@ -69,3 +69,13 @@ type SendRes struct {
 		Status int    `json:"status"` // status有3种情况： 1.userid不存在(userid与appId绑定，该userid无法在当前应用中找到)； 2.卸载, 或主动触发解订阅, 或用户清除数据(用户清除数据会使客户端SDK触发解订阅) 4.非测试用户
 	} `json:"invalidUser"` // 非法用户信息，包括status和userid
 }
+
+type SendBatchRes struct {
+	Result       int    `json:"result"` // 接口调用是否成功的状态码 0成功，非0失败
+	Desc         string `json:"desc"`   // 文字描述接口调用情况
+	TaskId       string `json:"taskId"` // 任务编号
+	InvalidUsers *[]struct {
+		UserId string `json:"userid"` // userid为接入方传的regId或者alias
+		Status int    `json:"status"` // status有3种情况： 1.userid不存在(userid与appId绑定，该userid无法在当前应用中找到)； 2.卸载, 或主动触发解订阅, 或用户清除数据(用户清除数据会使客户端SDK触发解订阅) 4.非测试用户
+	} `json:"invalidUsers"` // 非法用户信息，包括status和userid
+}
