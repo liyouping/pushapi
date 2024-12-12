@@ -94,12 +94,12 @@ func (c *Client) SendWithContext(ctx context.Context, req *SendReq) (*SendRes, e
 	return res, nil
 }
 
-func (c *Client) SendBatch(req *SendBatchReq) (*SendRes, error) {
+func (c *Client) SendBatch(req *SendBatchReq) (*SendBatchRes, error) {
 	return c.SendBatchWithContext(context.Background(), req)
 }
 
-func (c *Client) SendBatchWithContext(ctx context.Context, req *SendBatchReq) (*SendRes, error) {
-	res := &SendRes{}
+func (c *Client) SendBatchWithContext(ctx context.Context, req *SendBatchReq) (*SendBatchRes, error) {
+	res := &SendBatchRes{}
 	token, err := c.auth(ctx)
 	if err != nil {
 		return nil, err
